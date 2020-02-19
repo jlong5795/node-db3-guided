@@ -9,13 +9,15 @@ exports.up = function(knex) {
     .createTable('posts', tbl => {
       tbl.increments();
       tbl.text('contents');
-      tbl.integer('user_id')
-        .unsigned()
+      // foreign key
+      tbl.integer('user_id') // foreign key must be the same type as the primary key it references
+        .unsigned() // always include .unsigned() when referencing an integer primary key
         .notNullable()
         .references('id')
         .inTable('users')
         .onUpdate('CASCADE')
-        .onDelete('CASCADE');
+        .onDelete('CASCADE'); // what happens if the primary key table row is deleted
+        // RESTRICT, DO NOTHING, SET NULL, CASCADE
     });
 };
 

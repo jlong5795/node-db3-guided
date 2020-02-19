@@ -1,6 +1,7 @@
 const express = require('express');
 
 const db = require('../data/db-config.js');
+const Users = require('./user-model.js');
 
 const router = express.Router();
 
@@ -35,7 +36,7 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
   const userData = req.body;
 
-  db('users').insert(userData)
+  addUser(userData)
   .then(ids => {
     res.status(201).json({ created: ids[0] });
   })
@@ -48,7 +49,7 @@ router.put('/:id', (req, res) => {
   const { id } = req.params;
   const changes = req.body;
 
-  db('users').where({ id }).update(changes)
+  Users.updateUser(id, changes)
   .then(count => {
     if (count) {
       res.json({ update: count });
@@ -77,4 +78,31 @@ router.delete('/:id', (req, res) => {
   });
 });
 
+// list all posts for a user
+router.get('/:id/posts', (req, res) => {
+  /**
+    select p.contents, u.username as saidBy
+    from posts as p
+    join users as u on p.contents = u.id
+    
+  */
+  db('posts as p')
+    .join('users as u', 'p.user_id', 'u.id')
+    .select('p.contents', 'u.username as saidBy')
+    .where({user_id: req.params.id})
+    .then(posts => {
+      res.status(200).json(posts)
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({error:'Server let you down.'})
+    });
+});
+
 module.exports = router;
+
+
+
+// separation of concerns principle
+// connected to the 'single responsibility principle
+// a unit should only have one reason to change
